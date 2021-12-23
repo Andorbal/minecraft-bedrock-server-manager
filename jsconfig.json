@@ -1,0 +1,8 @@
+{
+  "compilerOptions": {
+    "module": "es6",
+    "target": "es2020"
+  },
+  "exclude": ["node_modules", ".eslintrc.js", ".jest.config.js", ".prettierrc.js"],
+  "include": ["src/**/*"]
+}

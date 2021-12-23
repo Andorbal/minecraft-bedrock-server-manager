@@ -1,0 +1,35 @@
+{
+  "name": "bedrock-manager",
+  "version": "1.0.0",
+  "description": "Web application for managing Minecraft Bedrock server.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "prepare": "husky install",
+    "format": "npx prettier",
+    "lint": "npx eslint"
+  },
+  "keywords": [
+    "minecraft",
+    "bedrock",
+    "server"
+  ],
+  "author": "Andrew Benz",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.17.2",
+    "hbs": "^4.2.0"
+  },
+  "devDependencies": {
+    "dotenv": "^10.0.0",
+    "eslint": "^8.5.0",
+    "eslint-config-prettier": "^8.3.0",
+    "eslint-plugin-prettier": "^4.0.0",
+    "husky": "^7.0.4",
+    "jest": "^27.4.5",
+    "jest-express": "^1.12.0",
+    "lint-staged": "^12.1.3",
+    "nodemon": "^2.0.15",
+    "prettier": "^2.5.1"
+  }
+}
