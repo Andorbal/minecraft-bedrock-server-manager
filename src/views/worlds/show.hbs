@@ -1,0 +1,25 @@
+{{#> layout }}
+  <h2><a href="/server/{{server}}">{{serverName}}</a></h2>
+  <h3>{{world}}</h3>
+  
+  <form action="/server/{{server}}/world/{{world}}/addons" method="POST" enctype="multipart/form-data">
+    <input type="file" name="addon" />
+    <input type="submit" value="Upload" />
+  </form>
+
+  <h4>Resource Packs</h4>
+  <dl>
+    {{#each resourcePacks}}
+      <dt>{{pack_id}}</dt>
+      <dd>{{version}}</dd>  
+    {{/each}}
+  </dl>
+  
+  <h4>Behavior Packs</h4>
+  <dl>
+    {{#each behaviorPacks}}
+      <dt>{{pack_id}}</dt>
+      <dd>{{version}}</dd>  
+    {{/each}}
+  </dl>
+{{/layout }}

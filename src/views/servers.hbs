@@ -1,0 +1,9 @@
+{{#> layout }}
+  <h3><a href="/servers/new">New Server</a></h3>
+
+  {{#each servers}}
+    <ul>
+      <li><a href="/server/{{.}}">{{.}}</a></li>
+    </ul>
+  {{/each}}
+{{/layout }}

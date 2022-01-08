@@ -1,0 +1,19 @@
+{{#> layout }}
+  <h2>{{serverName}}</h2>
+  {{#if running}}
+    <form action="/server/{{server}}/stop" method="post">
+      <input type="submit" value="Stop" />
+    </form>
+  {{ else }}
+    <form action="/server/{{server}}/start" method="post">
+      <input type="submit" value="Start" />
+    </form>
+  {{/if}}
+
+  <h3>Worlds</h3>
+  <ul>
+    {{#each worlds}}
+      <li>{{#if isDefault}}Y{{else}}N{{/if}} <a href="/server/{{../server}}/world/{{name}}">{{name}}</a></li>
+    {{/each}}
+  </ul>
+{{/layout }}

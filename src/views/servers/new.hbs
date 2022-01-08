@@ -1,0 +1,30 @@
+{{#> layout }}
+  <h2>New Server</h2>
+  <form action="/servers/create" method="post">
+    {{#each properties}}
+    <div>
+      <label>
+        <div>{{key}}</div>
+
+        {{#if (eq type "string")}}
+          <input type="text" name="{{key}}" value="{{defaultValue}}" />
+        {{else if (eq type "number")}}
+          <input type="number" name="{{key}}" value="{{defaultValue}}" />
+        {{else if (eq type "boolean")}}
+          <input type="checkbox" name="{{key}}" {{#if defaultValue}}checked="true"{{/if}} />
+        {{else if (eq type "select")}}
+          <select>
+            {{#each options}}
+              <option {{#if (eq defaultValue .)}}selected="true"{{/if}}>{{.}}</option>
+            {{/each}}
+          </select>
+        {{/if}}
+
+        <p>{{description}}</p>
+        
+      </label></div>
+    {{/each}}
+  
+    <input type="submit" value="Create!" />
+  </form>
+{{/layout }}
