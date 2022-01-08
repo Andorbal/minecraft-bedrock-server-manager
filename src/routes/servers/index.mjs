@@ -1,18 +1,13 @@
 import create from "./create.mjs";
+import enable from "./enable.mjs";
+import disable from "./disable.mjs";
 import list from "./list.mjs";
 import newServer from "./new.mjs";
 import show from "./show.mjs";
 import start from "./start.mjs";
 import stop from "./stop.mjs";
-
-const routes = [create, list, newServer, show, start, stop];
-
-const minecraftServerRoot = process.env.MINECRAFT_SERVER_ROOT;
-
-if (!minecraftServerRoot) {
-  throw new Error("MINECRAFT_SERVER_ROOT environment variable is not set");
-}
+import updateScripts from "./updateScripts.mjs";
 
 export default (app) => {
-  routes.forEach((route) => route(app, minecraftServerRoot));
+  [create, enable, disable, list, newServer, show, start, stop, updateScripts].forEach((route) => route(app));
 };

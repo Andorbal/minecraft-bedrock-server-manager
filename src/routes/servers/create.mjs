@@ -1,23 +1,12 @@
 import path from "path";
 import fs from "fs";
-import { userInfo } from "os";
 import { promisify } from "util";
 import snakeCase from "../../utilities/snakeCase.mjs";
 import buildServerPath from "../../utilities/buildServerPath.mjs";
 import config from "./config.mjs";
-import { exec } from "child_process";
 
 const mkdir = promisify(fs.mkdir);
-const readFile = promisify(fs.readFile);
 const writeFile = promisify(fs.writeFile);
-const chmod = promisify(fs.chmod);
-
-const scriptBasePath = path.resolve("./scripts/templates");
-const scripts = ["fixpermissions.sh", "minecraftbe.service", "restart.sh", "start.sh", "stop.sh", "setup-service.sh"];
-const serverPathRegex = new RegExp(/dirname\/minecraftbe\/servername/g);
-const servernameRegex = new RegExp(/servername/g);
-const usernameRegex = new RegExp(/userxname/g);
-const userPathRegex = new RegExp(/pathvariable/g);
 
 const validValues = (details) => {
   switch (details.type) {
@@ -57,28 +46,6 @@ export default async (app, minecraftServerRoot) => {
 
     await mkdir(serverPath, { recursive: true });
 
-    const username = userInfo().username;
-
-    for (const script of scripts) {
-      const inputPath = path.join(scriptBasePath, script);
-      const outputPath = path.join(serverPath, script);
-
-      console.log(inputPath);
-      const scriptContents = (await readFile(inputPath)).toString();
-
-      const modifiedScript = scriptContents
-        .replace(serverPathRegex, serverPath)
-        .replace(servernameRegex, nameSnakeCase)
-        .replace(usernameRegex, username)
-        .replace(userPathRegex, process.env.PATH);
-
-      await writeFile(outputPath, modifiedScript);
-
-      if (outputPath.endsWith(".sh")) {
-        await chmod(outputPath, "755");
-      }
-    }
-
     const serverProperties = config
       .flatMap((details) => {
         console.log(details.key);
@@ -91,17 +58,10 @@ export default async (app, minecraftServerRoot) => {
 
     writeFile(path.join(serverPath, "server.properties"), serverProperties);
 
-    exec(`sudo ${path.join(serverPath, "setup-service.sh")}`, { shell: "/bin/bash" }, (error, stdout, stderr) => {
-      if (error) {
-        console.log(`error: ${error.message}`);
-        return;
-      }
-      if (stderr) {
-        console.log(`stderr: ${stderr}`);
-        return;
-      }
-      console.log(`stdout: ${stdout}`);
-    });
+    const server = await getServer();
+
+    await server.copyScripts();
+    await server.enable();
 
     res.redirect("/servers");
   });

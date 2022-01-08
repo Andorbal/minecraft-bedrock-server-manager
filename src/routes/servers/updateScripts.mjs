@@ -1,11 +1,13 @@
 import { getServer } from "##/services/servers.mjs";
 
 export default async (app) => {
-  app.post("/server/:server/start", async (req, res) => {
+  app.post("/server/:server/updateScripts", async (req, res) => {
     const id = req.params.server;
     const server = await getServer(id);
 
-    await server.start();
+    await server.copyScripts();
+
+    console.log(`Done copying scripts for ${id}.`);
 
     res.redirect(`/server/${id}`);
   });

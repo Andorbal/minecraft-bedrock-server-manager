@@ -9,6 +9,18 @@
       <input type="submit" value="Start" />
     </form>
   {{/if}}
+  {{#if enabled}}
+    <form action="/server/{{server}}/disable" method="post">
+      <input type="submit" value="Disable" />
+    </form>
+  {{ else }}
+    <form action="/server/{{server}}/enable" method="post">
+      <input type="submit" value="Enable" />
+    </form>
+  {{/if}}
+    <form action="/server/{{server}}/updateScripts" method="post">
+      <input type="submit" value="Update Scripts" />
+    </form>
 
   <h3>Worlds</h3>
   <ul>

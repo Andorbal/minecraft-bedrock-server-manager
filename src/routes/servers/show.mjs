@@ -1,36 +1,22 @@
-import path from "path";
-import { readdir, readFile } from "##/utilities/promisedFs.mjs";
-import { exec } from "child_process";
-import buildServerPath from "##/utilities/buildServerPath.mjs";
-import readProperties from "##/utilities/readProperties.mjs";
+import { getServer } from "##/services/servers.mjs";
 
-export default (app, minecraftServerRoot) => {
+export default (app) => {
   app.get("/server/:server", async (req, res) => {
-    const serverPath = buildServerPath(minecraftServerRoot, req.params.server);
+    const id = req.params.server;
+    const server = await getServer(id);
 
-    const properties = await readProperties(serverPath);
+    const [worlds, running, enabled] = await Promise.all([
+      server.worlds(),
+      server.isRunning(),
+      server.isServiceEnabled(),
+    ]);
 
-    const running = await new Promise((resolve, reject) => {
-      exec(`screen -list | grep -q "\.${req.params.server}"`, { shell: "/bin/bash" }, (error, stdout, stderr) => {
-        if (error) {
-          console.dir(error);
-          resolve(false);
-          return;
-        } else if (stderr) {
-          console.log(`stderr: ${stderr}`);
-        } else {
-          console.log(`stdout: ${stdout}`);
-        }
-
-        resolve(true);
-      });
+    res.render("servers/show", {
+      serverName: server.properties["server-name"],
+      server: id,
+      running,
+      enabled,
+      worlds,
     });
-
-    const worldList = await readdir(path.join(serverPath, "worlds"));
-    const worlds = worldList.map((world) => ({ name: world, isDefault: world === properties["level-name"] }));
-
-    const name = properties["server-name"];
-
-    res.render("servers/show", { serverName: name, server: req.params.server, running, worlds });
   });
 };

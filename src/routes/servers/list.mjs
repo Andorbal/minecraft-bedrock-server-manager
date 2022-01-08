@@ -1,14 +1,8 @@
-import path from "path";
-import fs from "fs";
-import { promisify } from "util";
+import { listServers } from "##/services/servers.mjs";
 
-const readdir = promisify(fs.readdir);
-
-export default (app, minecraftServerRoot) => {
+export default (app) => {
   app.get("/servers", async (req, res) => {
-    const servers = await readdir(minecraftServerRoot);
-
-    console.dir(servers, { depth: null });
+    const servers = await listServers();
 
     res.render("servers", {
       servers,
