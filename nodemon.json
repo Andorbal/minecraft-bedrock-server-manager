@@ -1,6 +1,11 @@
 {
   "verbose": true,
-  "ignore": ["*.test.*js"],
-  "watch": ["src/"],
-  "ext": "mjs"
+  "ignore": [
+    "*.test.*js"
+  ],
+  "watch": [
+    "src/",
+    "views/"
+  ],
+  "ext": "mjs,hbs"
 }

@@ -1,8 +1,16 @@
 {
   "compilerOptions": {
     "module": "es6",
-    "target": "es2020"
+    "target": "es2020",
+    "types": ["node", "jest"],
+    "baseUrl": "src",
+    "paths": {
+      "##/*": ["src/*"]
+    }
   },
-  "exclude": ["node_modules", ".eslintrc.js", ".jest.config.js", ".prettierrc.js"],
-  "include": ["src/**/*"]
+  "exclude": ["node_modules", ".eslintrc.js", ".jest.config.js", ".prettierrc.js", "jsconfig.json"],
+  "include": ["src/**/*"],
+  "typeAcquisition": {
+    "include": ["jest"]
+  }
 }

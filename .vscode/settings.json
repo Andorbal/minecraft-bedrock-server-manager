@@ -1,5 +1,6 @@
 {
   "editor.formatOnSave": true,
+  "editor.rulers": [120, 120],
   "workbench.colorCustomizations": {
     "activityBar.activeBackground": "#9d6393",
     "activityBar.activeBorder": "#aeb58a",
@@ -19,5 +20,6 @@
     "titleBar.inactiveBackground": "#7e4f7699",
     "titleBar.inactiveForeground": "#e7e7e799"
   },
-  "peacock.remoteColor": "#7e4f76"
+  "peacock.remoteColor": "#7e4f76",
+  "cSpell.words": ["fixpermissions", "Minecraft", "minecraftbe"]
 }
