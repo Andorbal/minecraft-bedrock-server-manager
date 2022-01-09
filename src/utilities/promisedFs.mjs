@@ -2,6 +2,7 @@ import fs from "fs";
 import { promisify } from "util";
 
 export const chmod = promisify(fs.chmod);
+export const cp = promisify(fs.cp);
 export const rm = promisify(fs.rm);
 export const rmdir = promisify(fs.rmdir);
 export const stat = promisify(fs.stat);

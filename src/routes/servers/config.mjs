@@ -176,7 +176,7 @@ const config = [
   },
   {
     key: "player-movement-distance-threshold",
-    defaultValue: 0.3,
+    defaultValue: 0,
     type: "number",
     minimum: 0,
     description:

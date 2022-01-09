@@ -1,5 +1,6 @@
 {{#> layout }}
   <h2>{{serverName}}</h2>
+  <div>Port: {{port}}</div>
   {{#if running}}
     <form action="/server/{{server}}/stop" method="post">
       <input type="submit" value="Stop" />

@@ -1,14 +1,42 @@
 import { exec } from "child_process";
 import { join } from "path";
-import { readdir, readFile, stat } from "##/utilities/promisedFs.mjs";
 import { getAll } from "./worlds.mjs";
 import { copyScripts } from "##/utilities/copyScripts.mjs";
+import { readConfigData } from "##/utilities/readConfigData.mjs";
+import { readdir, readFile, mkdir, stat, writeFile } from "fs/promises";
+import snakeCase from "##/utilities/snakeCase.mjs";
+import config from "##/routes/servers/config.mjs";
 
+const bedrockConnectRoot = process.env.MINECRAFT_CONNECT_ROOT;
+const minecraftServerHost = process.env.MINECRAFT_SERVER_HOST;
 const minecraftServerRoot = process.env.MINECRAFT_SERVER_ROOT;
 
 if (!minecraftServerRoot) {
   throw new Error("MINECRAFT_SERVER_ROOT environment variable is not set");
 }
+
+const validValues = (details) => {
+  switch (details.type) {
+    case "select":
+      return "Valid values are: " + details.options.join(", ");
+    case "number":
+      return `Valid values are numbers between ${details.minimum || "min integer"} and ${
+        details.maximum || "max integer"
+      }`;
+    case "boolean":
+      return "Valid values are true and false";
+    default:
+      return "Valid values are string";
+  }
+};
+
+const buildComment = (details) => {
+  if (details.comment) {
+    return details.comment;
+  }
+
+  return ["# " + details.description, "# " + validValues(details)].join("\n");
+};
 
 const readProperties = async (serverPath) => {
   try {
@@ -31,19 +59,14 @@ const readProperties = async (serverPath) => {
 
 const isRunning = (id) => () =>
   new Promise((resolve, reject) => {
-    const command = `screen -list | grep -q "\.${id}"`;
+    const command = `screen -list | grep -q ".${id}"`;
     exec(command, { shell: "/bin/bash" }, (error, stdout, stderr) => {
       if (error) {
-        console.dir(error);
-        resolve(false);
+        resolve(error.code === 0);
         return;
-      } else if (stderr) {
-        console.log(`stderr: ${stderr}`);
       } else {
-        console.log(`stdout: ${stdout}`);
+        resolve(true);
       }
-
-      resolve(true);
     });
   });
 
@@ -60,6 +83,7 @@ const isServiceEnabled = (id) => () =>
         resolve(false);
       } else {
         const result = stdout.trim();
+        console.log(result);
         resolve(result === "enabled");
       }
     });
@@ -83,6 +107,41 @@ export const getPath = (server) => {
  * @returns {Promise<string[]>} List of server ids
  */
 export const listServers = () => readdir(minecraftServerRoot);
+
+/** Create a new server with the given params */
+export const createServer = async (params) => {
+  const id = snakeCase(params["server-name"]);
+  const serverPath = getPath(id);
+
+  try {
+    await stat(serverPath);
+    throw new Error("Server already exists");
+  } catch {}
+
+  console.log(serverPath);
+
+  await mkdir(serverPath, { recursive: true });
+
+  const serverProperties = config
+    .flatMap((details) => {
+      console.log(details.key);
+
+      const value = params[details.key] || details.defaultValue;
+
+      return [`${details.key}=${value}`, buildComment(details), ""];
+    })
+    .join("\n");
+
+  writeFile(join(serverPath, "server.properties"), serverProperties);
+
+  const server = await getServer(id);
+
+  await server.copyScripts();
+  await server.enable();
+  await server.updateBedrockConnect();
+
+  return server;
+};
 
 /** Gets a server
  * @param id {string} Id of the server to get
@@ -117,15 +176,46 @@ export const getServer = async (id) => {
         console.log(`${type}ing ${id}...`);
         if (error) {
           console.log(`error: ${error.message}`);
-        } else if (stderr) {
+          console.error(error);
+        }
+
+        if (stderr) {
           console.log(`stderr: ${stderr}`);
-        } else {
+        }
+
+        if (stdout) {
           console.log(`stdout: ${stdout}`);
         }
 
         resolve();
       });
     });
+
+  const updateBedrockConnect = async (previousName) => {
+    try {
+      await stat(bedrockConnectRoot);
+    } catch (err) {
+      console.error(err);
+      return;
+    }
+
+    const configPath = join(bedrockConnectRoot, "server", "serverlist.json");
+    console.log(configPath);
+    const config = await readConfigData(configPath);
+    console.dir(config);
+    let serverDetails = previousName && config.find((x) => x.name === previousName);
+    if (!serverDetails) {
+      serverDetails = {
+        name: properties["server-name"],
+      };
+      config.push(serverDetails);
+    }
+
+    serverDetails.address = minecraftServerHost;
+    serverDetails.port = properties["server-port"];
+    console.dir(config);
+    await writeFile(configPath, JSON.stringify(config, null, 2));
+  };
 
   return {
     id,
@@ -139,5 +229,6 @@ export const getServer = async (id) => {
     copyScripts: () => copyScripts(id, path),
     start: () => manageState("start"),
     stop: () => manageState("stop"),
+    updateBedrockConnect,
   };
 };

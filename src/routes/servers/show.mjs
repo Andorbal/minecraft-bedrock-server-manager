@@ -14,6 +14,7 @@ export default (app) => {
     res.render("servers/show", {
       serverName: server.properties["server-name"],
       server: id,
+      port: server.properties["server-port"],
       running,
       enabled,
       worlds,
