@@ -174,7 +174,7 @@ export const getServer = async (id) => {
         console.log(`stderr: ${stderr}`);
         console.log(`stdout: ${stdout}`);
         resolve();
-      })
+      }),
     );
 
   const manageState = (type) =>
