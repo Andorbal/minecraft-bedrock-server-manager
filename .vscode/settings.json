@@ -18,7 +18,8 @@
     "titleBar.activeBackground": "#7e4f76",
     "titleBar.activeForeground": "#e7e7e7",
     "titleBar.inactiveBackground": "#7e4f7699",
-    "titleBar.inactiveForeground": "#e7e7e799"
+    "titleBar.inactiveForeground": "#e7e7e799",
+    "commandCenter.border": "#e7e7e799"
   },
   "peacock.remoteColor": "#7e4f76",
   "cSpell.words": ["fixpermissions", "Minecraft", "minecraftbe"]

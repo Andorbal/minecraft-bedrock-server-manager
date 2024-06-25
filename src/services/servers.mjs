@@ -1,9 +1,9 @@
 import { exec } from "child_process";
 import { join } from "path";
 import { getAll } from "./worlds.mjs";
-import { copyScripts } from "##/utilities/copyScripts.mjs";
+import { copyScripts as copyServerScripts } from "##/utilities/copyScripts.mjs";
 import { readConfigData } from "##/utilities/readConfigData.mjs";
-import { readdir, readFile, mkdir, stat, writeFile } from "fs/promises";
+import { readdir, readFile, mkdir, stat, writeFile, cp } from "fs/promises";
 import snakeCase from "##/utilities/snakeCase.mjs";
 import config from "##/routes/servers/config.mjs";
 
@@ -155,6 +155,13 @@ export const getServer = async (id) => {
     return properties;
   }
 
+  const worlds = () => getAll(path, properties["level-name"]);
+  const enable = () => manageService("enable");
+  const disable = () => manageService("disable");
+  const copyScripts = () => copyServerScripts(id, path);
+  const start = () => manageState("start");
+  const stop = () => manageState("stop");
+
   const manageService = (type) =>
     new Promise((resolve, reject) =>
       exec(`sudo ${join(path, "setup-service.sh")} ${type}`, { shell: "/bin/bash" }, (error, stdout, stderr) => {
@@ -201,20 +208,48 @@ export const getServer = async (id) => {
 
     const configPath = join(bedrockConnectRoot, "server", "serverlist.json");
     console.log(configPath);
-    const config = await readConfigData(configPath);
-    console.dir(config);
-    let serverDetails = previousName && config.find((x) => x.name === previousName);
+    const bcConfig = await readConfigData(configPath);
+    console.dir(bcConfig);
+    let serverDetails = previousName && bcConfig.find((x) => x.name === previousName);
     if (!serverDetails) {
       serverDetails = {
         name: properties["server-name"],
       };
-      config.push(serverDetails);
+      bcConfig.push(serverDetails);
     }
 
     serverDetails.address = minecraftServerHost;
-    serverDetails.port = properties["server-port"];
-    console.dir(config);
-    await writeFile(configPath, JSON.stringify(config, null, 2));
+    serverDetails.port = parseInt(properties["server-port"], 10);
+    console.dir(bcConfig);
+    await writeFile(configPath, JSON.stringify(bcConfig, null, 2));
+  };
+
+  const update = async (params) => {
+    const propertiesBackupPath = join(path, "server.properties_backups");
+    const propertiesPath = join(path, "server.properties");
+    const timestamp = new Date().toISOString().replaceAll("-", "_").replaceAll(":", "_");
+    await mkdir(propertiesBackupPath, { recursive: true });
+    await cp(propertiesPath, join(propertiesBackupPath, `server.properties.${timestamp}`));
+
+    const serverProperties = config
+      .flatMap((details) => {
+        const getValue = () => {
+          if (details.type === "boolean") {
+            return params[details.key] ? "on" : "off";
+          }
+
+          return params[details.key];
+        };
+
+        return [`${details.key}=${getValue()}`, buildComment(details), ""];
+      })
+      .join("\n");
+
+    writeFile(propertiesPath, serverProperties);
+
+    await copyScripts();
+    await enable();
+    await updateBedrockConnect(properties["server-name"]);
   };
 
   return {
@@ -223,12 +258,13 @@ export const getServer = async (id) => {
     path,
     isServiceEnabled: isServiceEnabled(id),
     isRunning: isRunning(id),
-    worlds: () => getAll(path, properties["level-name"]),
-    enable: () => manageService("enable"),
-    disable: () => manageService("disable"),
-    copyScripts: () => copyScripts(id, path),
-    start: () => manageState("start"),
-    stop: () => manageState("stop"),
+    worlds,
+    enable,
+    disable,
+    copyScripts,
+    start,
+    stop,
+    update,
     updateBedrockConnect,
   };
 };

@@ -75,12 +75,12 @@ const loadModules = async (path) => {
 export const getWorld = async (server, world) => {
   const path = buildWorldPath(server.path, world);
 
-  const readConfig = async (type) => {
+  const readPackConfig = async (type) => {
     const filePath = join(path, `world_${type}_packs.json`);
     return await readConfigData(filePath);
   };
 
-  const writeConfig = async (type, contents) => {
+  const writePacksConfig = async (type, contents) => {
     const filePath = join(path, `world_${type}_packs.json`);
     try {
       await writeFile(filePath, JSON.stringify(contents, null, 2));
@@ -128,7 +128,7 @@ export const getWorld = async (server, world) => {
     console.dir(module);
     const type = getTypeOfModule(module);
 
-    const config = await readConfig(type);
+    const config = await readPackConfig(type);
 
     await cp(pack, join(path, `${type}_packs`, manifest.header.uuid), {
       recursive: true,
@@ -136,13 +136,13 @@ export const getWorld = async (server, world) => {
 
     if (!config.find((x) => x.pack_id === manifest.header.uuid)) {
       config.push({ pack_id: manifest.header.uuid, version: manifest.header.version });
-      await writeConfig(type, config);
+      await writePacksConfig(type, config);
     }
   };
 
   const listPacks = async (type) => {
     const enricher = await enrichWithName(type);
-    const packs = await readConfig(type);
+    const packs = await readPackConfig(type);
 
     return packs.map(enricher);
     // const enrichedPacks = [];
