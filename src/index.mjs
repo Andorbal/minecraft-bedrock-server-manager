@@ -21,7 +21,7 @@ app.set("view engine", "hbs");
 
 hbs.registerHelper("eq", (a, b) => a == b);
 
-app.use(express.urlencoded()); // to support URL-encoded bodies
+app.use(express.urlencoded({ extended: true })); // to support URL-encoded bodies
 app.use(
   fileUpload({
     limits: { fileSize: 50 * 1024 * 1024 },
